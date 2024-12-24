@@ -112,7 +112,7 @@ def submit_analysis(n_clicks, topics, positions):
     if n_clicks == 0:
         return ""
 
-    parties = ["afd", "bsw", "fdp", "gruene", "linke", "spd", "union"]
+    parties = ["spd", "union", "gruene", "fdp", "afd", "linke", "bsw"]
     max_answer_length = 600
     output = []
     analysis_thread = threading.Thread(target=perform_analysis,
@@ -122,6 +122,7 @@ def submit_analysis(n_clicks, topics, positions):
 
     final_score = output[0]
 
+    final_score = dict(sorted(final_score.items(), key=lambda item: item[1]['total'], reverse=True))
     party_boxes = []
     for party, scores in final_score.items():
         party_box = html.Div([

@@ -176,7 +176,7 @@ def analyze_score(score, position, context, party, topic_criteria, recursive_dep
             # Extract the score from the response
             detailed_answer, rating = split_response(response)
             score["detailed_answer"] = detailed_answer
-            score["rating"] = int(rating) if rating.isdigit() else 0
+            score["rating"] = int(rating) if str(rating).isdigit() else 0
             if recursive_depth < max_recursive_depth:
                 return analyze_score(score, position, context, party, topic_criteria, recursive_depth + 1)
             else:
@@ -286,7 +286,8 @@ def process_position(i, party, topics, positions, criteria, max_answer_length):
 
 def process_party(party, topics, positions, criteria, max_answer_length):
     party_score = {}
-
+    for topic in topics:
+        party_score[topic] = None
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_position, i, party, topics, positions, criteria, max_answer_length) for i in range(len(positions))]
@@ -303,12 +304,14 @@ def process_party(party, topics, positions, criteria, max_answer_length):
     return party, party_score
 
 def get_parties_context_of_political_positions(parties, topics, positions, max_answer_length=100):
-    score = {}
     with concurrent.futures.ThreadPoolExecutor() as executor:
         criteria_futures = [executor.submit(get_criteria_for_position, i, topics, positions) for i in range(len(positions))]
         criteria = [future.result() for future in concurrent.futures.as_completed(criteria_futures)]
 
 
+    score = {}
+    for party in parties:
+        score[party] = None
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_party, party, topics, positions, criteria, max_answer_length) for party in parties]
         for future in concurrent.futures.as_completed(futures):
