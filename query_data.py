@@ -4,12 +4,10 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 
-
 import basic_gpt
 from embedding_function import get_embedding_function
 import util
 
-from scrt import OPENAI_KEY
 
 PROMPT_TEMPLATE = """
 Answer the question based only on the following context:
@@ -62,21 +60,18 @@ def query_rag(query_text: str, chroma_dir: str, unique_role: str=None, unique_pr
     db = Chroma(persist_directory=chroma_dir, embedding_function=embedding_function)
 
     # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=5)
+    results = db.similarity_search_with_score(query_text, k=4)
 
     context_texts = []
     metadata_list = []
     for doc, _score in results:
         metadata_list.append(doc.metadata)
-        type = doc.metadata.get("type", None)
-        url = doc.metadata.get("url", None)
-        base_url = doc.metadata.get("base_url", None)
-        if base_url is None:
-            base_url = url
+        pdf_name = doc.metadata.get("pdf_name", None)
+        title = doc.metadata.get("title", None)
         # doc_name = doc.metadata.get("doc_name", None)
         page_content = doc.page_content
         # if type == "image":
-        context_texts.append(f"[source: {type}, {base_url}]\n{page_content}")
+        context_texts.append(f"[source: {pdf_name}, {title}]\n{page_content}")
 
     context_text = "\n\n---\n\n".join(context_texts)
     # sources = [doc.metadata.get("id", None) for doc, _score in results]
@@ -95,7 +90,7 @@ def query_rag(query_text: str, chroma_dir: str, unique_role: str=None, unique_pr
     role = "Provide accurate and concise answers based solely on the given context." if not unique_role else unique_role
     response_text = basic_gpt.ask_mini_gpt(prompt, role)
 
-    return response_text, context_text
+    return response_text, context_text, metadata_list
 
 
 def load_raw_document_content(doc_name: str, data_dir: str):

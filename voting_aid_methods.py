@@ -85,44 +85,51 @@ def get_criteria_instructions():
 
 def get_rag_prompt_template():
     return \
-        """ Hier ist eine politische Position zu einem Thema: {question}
+        """ Hier ist meine politische Position zu einem Thema: {question}
         ---
-        Wie eng entspricht die Meinung des Users in der Frage, die der Partei im Kontext? Bewerte von 0-100!
-        
-        {context}
+        Hier ist die politische Position einer Partei: {context}
+        ---
+        Wie eng entspricht meine Meinung in der Frage, die der Partei? Bewerte von 0-100!
         """
 
 def get_rag_rating_instructions(topic_criteria, max_answer_length=100):
     return (
-        f"Wie eng entspricht die Meinung dem Kontext? Antworte in {max_answer_length} Zeichen oder weniger "
+        f"Wie eng entspricht meine Meinung dem der Partei? Antworte in {max_answer_length} Zeichen oder weniger. "
         f"und bewerte von 0-100."
         f"Nutze diese Kriterien um die Antwort zu bewerten: {topic_criteria}"
         f"\n---\n"
         f"Antworte bitte im folgenden Format:\n"
         f"Antwort: <detaillierte Antwort>\n"
         f"Bewertung: <Zahl>\n"
-        f"Sollte der Context keine Antwort auf die Frage bereitstellen, dann antworte ausschließlich mit: 'None'."
+        f"---\n"
+        f"Sollten die Abschnitte aus dem Parteiprogramm keinen Zusammenhang zu meiner Meinung haben, "
+        f"dann antworte ausschließlich mit: 'None'."
+        f"Deine Antwort darf sich ausschließlich auf den Inhalt der politischen Positionen im Abschnitt des "
+        f"Parteiprogramms beziehen. Zögere nicht mit 'None' zu antworten, wenn du keine Übereinstimmung siehst."
+        f"Antworte auf keinen Fall mit deinem Wissen über die Partei. Die Antwort muss sich ausschließlich auf den "
+        f"Text beziehen."
     )
 
 def is_rating_sufficient_instruction():
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von Parteien zu "
-        "vergleichen. Glaubst du die Partei wurde anhand des Kontext und der Bewertungskriterien richtig "
-        "bewertet? Das Ergebnis der Bewertung steht im Score."
-        "Glaubst du der Kontext ist ausreichend um die Fragestellung zu beantworten? \n"
-        "---\n"
-        "Sollte der Kontext nicht ausreichen dann genügt eine Antwort mit: 'Der Kontext ist nicht ausreichend.'"
+        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen von einer Partei mit meiner Meinung zu "
+        "vergleichen. Glaubst du die Partei wurde anhand von Abschnitten aus ihrem Parteiprogramm und der "
+        "Bewertungskriterien richtig bewertet? Das Ergebnis der Bewertung steht im Score."
+        "Beachte das eine Bewertung von '-1' oder 'None' bedeutet das der Abschnitt nicht ausreichend war."
+        "Glaubst du die Abschnitte aus dem Parteiprogramm sind ausreichend um die Fragestellung zu beantworten? "
+        "\n---\n"
+        "Sollten die Abschnitte nicht ausreichen dann genügt eine Antwort mit: 'Die Abschnitte sind nicht ausreichend.'"
         "Es ist dann egal ob die Partei richtig oder falsch bewertet wurde.\n"
         "Antworte ausschließlich mit einer dieser Optionen: \n"
-        "Der Kontext ist nicht ausreichend. \n"
-        "Die Partei wurde nicht richtig bewertet. Der Kontext ist aber ausreichend.\n"
-        "Die Partei wurde richtig bewertet und der Kontext ist ausreichend.\n"
+        "Die Abschnitte sind nicht ausreichend. \n"
+        "Die Partei wurde nicht richtig bewertet. Die Abschnitte sind aber ausreichend.\n"
+        "Die Partei wurde richtig bewertet und Die Abschnitte sind ausreichend.\n"
     )
 
 def get_reevaluate_rating_instructions():
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von Parteien zu "
-        "vergleichen. Ein anderer Agent hat den Score anhand des Kontext und der Bewertungskriterien "
+        "Ich habe einen Agenten, dessen Aufgabe es ist meine politische Meinung mit der Meinung von einer Partei zu "
+        "vergleichen. Ein anderer Agent hat den Score anhand der Abschnitte  und der Bewertungskriterien "
         "als falsch bewertet eingestuft. Passe die Bewertung bitte an. \n"
         "Antworte bitte im folgenden Format:\n"
         "Antwort: <detaillierte Antwort>\n"
@@ -131,38 +138,43 @@ def get_reevaluate_rating_instructions():
 
 def is_context_completely_instructions():
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von Parteien zu "
-        "vergleichen. Ein anderer Agent hat den Kontext als nicht ausreichend eingestuft. Der Kontext wird "
-        "von einer RAG-DB bezogen. Beinhaltet der Kontext bzw. der Score einen Teil der Antwort? oder ist "
-        "er komplett falsch? \n"
+        "Ich habe einen Agenten, dessen Aufgabe es ist meine politische Meinung mit der Meinung von einer Partei zu "
+        "vergleichen. Ein anderer Agent hat die Abschnitte aus dem Parteiprogramm als nicht ausreichend eingestuft. "
+        "Die Abschnitte werden von einer RAG-DB bezogen. Beinhalten die Abschnitte bzw. der Score einen Teil der "
+        "Antwort? oder sind die Abschnitte komplett falsch? \n"
         "Antworte ausschließlich mit einer dieser Optionen: \n"
-        "Der Kontext und Score ist nicht ausreichend aber zu teilen Richtig bzw. Relevant. \n"
-        "Der Kontext und Score ist komplett falsch. \n"
+        "Die Abschnitte und der Score sind nicht ausreichend aber zu teilen Richtig bzw. Relevant. \n"
+        "Die Abschnitte und der Score sind komplett falsch. \n"
     )
 
-def get_adapted_opinion_for_better_context_instructions():
+def get_adapted_opinion_for_better_context_instructions(max_answer_length=100):
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von Parteien zu "
-        "vergleichen. Ein anderer Agent hat den Kontext als nicht ausreichend eingestuft. Der Kontext wird "
-        "von einer RAG-DB bezogen. Passe den 'Politische Meinung' so an, dass die RAG-DB dazu mehr zu dem "
-        "Thema finden kann. Dazu kannst du schon gefundene Themen entfernen. \n"
-        "Passe auf keinen Fall den Inhalt an sondern ausschließlich das Vokabular."
+        "Ich habe einen Agenten, dessen Aufgabe es ist meine politische Meinung mit der Meinung von einer Partei zu "
+        "vergleichen. Ein anderer Agent hat die Abschnitte aus Parteiprogrammen als nicht ausreichend eingestuft. "
+        "Die Abschnitte werden von einer RAG-DB bezogen. Passe meine politische Meinung so an, dass die RAG-DB mehr "
+        "zu dem Thema finden kann. Dazu kannst du schon gefundene Themen, entfernen. \n"
+        "Passe auf keinen Fall den Inhalt an sondern ausschließlich das Vokabular. "
+        "Antworte ausschließlich mit meiner überarbeiteten politischen Meinung!"
+        f"Antworte in {max_answer_length} Zeichen oder weniger"
     )
 
-def get_adapted_opinion_for_new_context_instructions():
+def get_adapted_opinion_for_new_context_instructions(max_answer_length=100):
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von "
-        "Parteien zu vergleichen. Ein anderer Agent hat den Kontext als falsch eingestuft. "
-        "Der Kontext wird von einer RAG-DB bezogen. Passe den 'Politische Meinung' so "
-        "an, dass die RAG-DB dazu mehr zu dem Thema finden kann. \n"
-        "Passe auf keinen Fall den Inhalt an sondern ausschließlich das Vokabular."
+        "Ich habe einen Agenten, dessen Aufgabe es ist meine politische Meinung mit der Meinung von einer "
+        "Partei zu vergleichen. Ein anderer Agent hat die Abschnitte aus dem Parteiprogramm als falsch eingestuft. "
+        "Die Abschnitte werden von einer RAG-DB bezogen. Passe meine politische Meinung so an, dass die RAG-DB "
+        "mehr zu dem Thema finden kann. \n"
+        "Passe auf keinen Fall den Inhalt an sondern ausschließlich das Vokabular. "
+        "Antworte ausschließlich mit meiner überarbeiteten politischen Meinung!"
+        f"Antworte in {max_answer_length} Zeichen oder weniger"
     )
 
 def get_rating_from_response_instructions():
     return (
-        "Ich habe einen Agenten, dessen Aufgabe es ist politische Meinungen mit der Meinung von Parteien zu "
+        "Ich habe einen Agenten, dessen Aufgabe es ist meine politische Meinung mit der Meinung von einer Partei zu "
         "vergleichen. Der Agent hat keine Zahl als Bewertung ausgespuckt. Bitte bewerte den Score von 0-100. "
         "Antworte nur mit einer Zahl, es sei denn du bist der Meinung das die Antwort nicht bewertbar ist. "
+        "Dann antworte mit: 'Die Antwort ist nicht bewertbar.'"
     )
 
 
@@ -184,49 +196,60 @@ def get_topics_and_descriptions(political_position):
 
     return topics, positions
 
+
 def get_topic_criteria(topic, position):
     position_text = "Thema: " + topic + "\n Politische Position" + position
     criteria = basic_gpt.ask_mini_gpt(position_text, get_criteria_instructions(), temperature=0.1)
     # print(f"Criteria:\n {criteria}")
     return criteria
 
+
 def get_party_context_of_political_position_npp(party, position_text, topic_criteria, max_answer_length=100):
-
-
     chroma_dir = f"data/{party}/chroma"
 
-    response, context = query_data.query_rag(position_text, chroma_dir,
-                                             get_rag_rating_instructions(topic_criteria, max_answer_length),
-                                             get_rag_prompt_template())
+    response, context, metadata = query_data.query_rag(position_text, chroma_dir,
+                                                        get_rag_rating_instructions(topic_criteria, max_answer_length),
+                                                        get_rag_prompt_template())
     score = {}
     if response != "None":
         try:
             detailed_answer, rating = split_response(response)
         except:
             detailed_answer = None
-            rating = 0
+            rating = -1
     else:
         detailed_answer = None
-        rating = 0
+        rating = -1
+
+    for m in metadata:
+        if "url" not in m:
+            if "pdf_name" in m:
+                m["url"] = f"data/{party}/{m['pdf_name']}"
+                if m["page"] != -1:
+                    m["url"] += f"#page={m['page']}"
 
     score["detailed_answer"] = detailed_answer
     score["rating"] = int(rating) if  str(rating).isdigit() else None
+    score["metadata"] = metadata
     return score, context
 
 def get_party_context_of_political_position(party, topic, position, topic_criteria, max_answer_length=100,
                                             recursive_depth=0):
-    position_text = "Thema: " + topic + "\n Politische Position" + position
+    if recursive_depth == 0:
+        position_text = "Thema: " + topic + "\n Politische Position: " + position
+    else:
+        position_text = position
     score, context = get_party_context_of_political_position_npp(party, position_text, topic_criteria, max_answer_length)
-    return analyze_score(score, position, context, party, topic_criteria, recursive_depth)
+    return analyze_score(score, position_text, context, party, topic_criteria, recursive_depth)
 
 def analyze_score(score, position, context, party, topic_criteria, recursive_depth=0):
     max_recursive_depth = 3
-    p_pcs = ("Politische Meinung: " + position + "\n---\n"
-             + "Kontext: " + context + "\n---\n"
-             + "Bewertung: " + str(score))
+    p_pcs = ("Meine Politische Meinung: \n" + position + "\n---\n"
+             + "Abschnitte aus dem Parteiprogramm: \n" + context + "\n---\n"
+             + "Bewertung: " + str(score["rating"]))
 
-    if "detailed_answer" in score and "rating" in score and score["detailed_answer"] is not None and score[
-        "rating"] is not None:
+    if ("detailed_answer" in score and "rating" in score and score["detailed_answer"] is not None
+            and score["rating"] is not None):
 
         response = basic_gpt.ask_mini_gpt(p_pcs, is_rating_sufficient_instruction())
         if "wurde richtig bewertet" in response.lower():
@@ -242,7 +265,7 @@ def analyze_score(score, position, context, party, topic_criteria, recursive_dep
                 return analyze_score(score, position, context, party, topic_criteria, recursive_depth + 1)
             else:
                 return score
-        elif "kontext ist nicht ausreichend" in response.lower() and party != "bsw":
+        elif "abschnitte sind nicht ausreichend" in response.lower() and party != "bsw":
             response = basic_gpt.ask_mini_gpt(p_pcs, is_context_completely_instructions())
 
             if "zu teilen richtig" in response.lower():
@@ -257,7 +280,7 @@ def analyze_score(score, position, context, party, topic_criteria, recursive_dep
                     # Extract the score from the response
                     detailed_answer, rating = split_response(response)
                     score["detailed_answer"] = detailed_answer
-                    score["rating"] = int(rating) if rating.isdigit() else 0
+                    score["rating"] = int(rating) if rating and rating.isdigit() else -1
                     if recursive_depth < max_recursive_depth:
                         return analyze_score(score, position, (context+new_context), party, topic_criteria, recursive_depth + 1)
                     else:
@@ -313,10 +336,17 @@ def process_party(party, topics, positions, criteria, max_answer_length):
             topic, result = future.result()
             party_score[topic] = result
 
-    party_score["total"] = None
-    valid_ratings = [int(party_score[topic]['rating']) for topic in topics if party_score[topic]['detailed_answer'] is not None]
+    party_score["total"] = -1
+    valid_ratings = [int(party_score[topic]['rating']) for topic in topics
+                     if party_score[topic]['detailed_answer'] is not None and party_score[topic]['rating'] != -1]
     if len(valid_ratings) > 0:
+        baseline_score = 15
         party_score["total"] = sum(valid_ratings) / len(valid_ratings)
+        if party_score["total"] > baseline_score:
+            valid_ratings = [int(party_score[topic]['rating']) for topic in topics
+                             if party_score[topic]['detailed_answer'] is not None]
+            valid_ratings = [r if r != -1 else baseline_score for r in valid_ratings]
+            party_score["total"] = sum(valid_ratings) / len(valid_ratings)
     print(f"Die {party} ist in deiner politischen Position, {party_score['total']}% an deiner Meinung.")
     print()
     return party, party_score
@@ -325,7 +355,6 @@ def get_parties_context_of_political_positions(parties, topics, positions, max_a
     with concurrent.futures.ThreadPoolExecutor() as executor:
         criteria_futures = [executor.submit(get_criteria_for_position, i, topics, positions) for i in range(len(positions))]
         criteria = [future.result() for future in concurrent.futures.as_completed(criteria_futures)]
-
 
     score = {}
     for party in parties:

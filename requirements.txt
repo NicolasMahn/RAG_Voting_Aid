@@ -17,3 +17,4 @@ PyMuPDF
 gradio==4.32.2
 PyPDF2
 dash
+tiktoken

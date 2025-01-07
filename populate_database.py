@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import shutil
 import yaml
@@ -56,8 +57,10 @@ class DatabaseManager:
         self.url_mapping_file = f"{topic_dir}/url_mapping.yml"
         self.context_file = f"{topic_dir}/context_data.yaml"
         self.predefined_ids_file = f"{topic_dir}/ids.yaml"
+        self.metadata_file = f"{topic_dir}/metadata.json"
 
         self.context_data = self.open_context_data()
+        self.metadata_entries = self.load_metadata_entries()
 
         self.separate_in_chunks = separate_in_chunks
         self.chunk_separation_warning = chunk_separation_warning
@@ -75,6 +78,16 @@ class DatabaseManager:
 
         self.predefined_ids = self.get_predefined_ids()
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size)
+
+    def load_metadata_entries(self):
+        with open(self.metadata_file, 'r', encoding='utf-8') as file:
+            return json.load(file)
+
+    def find_metadata_for_txt(self, txt_file):
+        for entry in self.metadata_entries:
+            if entry['txt_file'] == txt_file:
+                return {key: value for key, value in entry.items() if key != 'txt_file'}
+        return {}
 
     def clear_database(self):
         if os.path.exists(self.chroma_dir):
@@ -155,7 +168,7 @@ class DatabaseManager:
         return metadata
 
     def add_to_chroma(self, doc: Document):
-        self.db.add_documents([doc], ids=[doc.metadata["id"]])
+        self.db.add_documents([doc], ids=[doc.metadata["id"]], metadata=[doc.metadata])
 
     def gather_context(self, file_path, base_url=None):
         context = [self.get_context_from_filename(file_path)]
@@ -213,15 +226,15 @@ class DatabaseManager:
         else:
             _type = "text"
 
-        if url is None:
-            metadata = {"doc_name": doc_name, "type": _type, "chunk_number": chunk_number}
-        else:
-            metadata = {"url": url, "doc_name": doc_name, "type": _type, "chunk_number": chunk_number}
+        metadata = self.find_metadata_for_txt(doc_name)
+        metadata.update({"url": url, "doc_name": doc_name, "type": _type, "chunk_number": chunk_number})
         return self.calculate_chunk_id(metadata)
+
+    def clean_metadata(self, metadata):
+        return {k: v for k, v in metadata.items() if v is not None}
 
     def process_txt(self, file_path: str):
         content = self.get_text(file_path)
-        metadata = ""
 
         if self.separate_in_chunks:
             content_chunks = self.split_text_into_chunks(content)
@@ -230,14 +243,17 @@ class DatabaseManager:
         documents = []
         for i, chunk in enumerate(content_chunks):
             metadata = self.load_txt_metadata(file_path, i)
+            metadata = self.clean_metadata(metadata)
+            if metadata is None:
+                print(f"{PINK}⚠️  Error: Metadata empty (line 247){RESET}")
+            elif self.debug:
+                print()
+                print(f"{GREEN}📄  Processing: {metadata['doc_name']} {RESET}")
+                print("Metadata:", metadata)
 
             doc = Document(page_content=chunk, id=metadata["id"], metadata=metadata)
             documents.append(doc)
 
-        if self.debug:
-            print()
-            print("Metadata:\n", metadata)
-            print("Content:\n", content_chunks)
         return documents
 
     def split_text_into_chunks(self, text):
