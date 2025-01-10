@@ -39,9 +39,17 @@ app.layout = html.Div([
             " ist ein Tool, das Ihnen dabei hilft, Ihre politische Position mit den Positionen verschiedener Parteien "
             "zu vergleichen. Derzeit basiert das Tool ausschließlich auf den Parteiprogrammen der jeweiligen Parteien.",
             html.Br(),
-            "Geben Sie Ihre politische Position in die Textbox unten ein und klicken Sie anschließend auf den Button ",
+            "Geben Sie Ihre politischen Meinungen in die Textbox unten ein, z. B. 'Klimaschutz ist wichtig' oder "
+            "'Die Wirtschaft soll liberalisiert werden'. Je präziser Ihre Angaben sind, desto genauer ist das "
+            "Endergebnis. Wenn Sie fertig sind, können Sie auf den Button ",
+            html.Strong("Zusammenfassen"),
+            " klicken. Ihre Eingaben werden dann in verschiedene Themengebiete unterteilt, die Sie bei Bedarf noch "
+            "einmal bearbeiten können. 'Thema' steht dabei für eine Kategorie, wie z. B. Klimaschutz, und 'Ansicht' "
+            "für Ihre spezifischen Meinungen und Lösungsvorschläge zu diesem Thema. Um das Ergebnis zu sehen, klicken "
+            "Sie auf den Button ",
             html.Strong("Analysiere"),
-            ". Ihre Eingabe wird in verschiedene Themengebiete unterteilt, die Sie bei Bedarf nochmals bearbeiten können."
+            ". Sie erhalten anschließend eine Übersicht über die Parteien und deren Positionen zu den Themen. ",
+            "Bitte beachten Sie, dass die Analyse einige Zeit in Anspruch nehmen kann."
         ], style={'text-align': 'center'}),
         html.P([
             html.Strong("Es werden keine Daten innerhalb dieses Tools gespeichert!", style = {'color': '#880033'})
@@ -57,11 +65,14 @@ app.layout = html.Div([
     ], style={'font-family': 'Arial, sans-serif', 'margin-left': '20px', 'margin-right': '20px'}),
     dcc.Textarea(
         id='political-position-input',
-        placeholder='Geben Sie hier bitte Ihre politische Position ein.',
-        style={'width': '95%', 'height': 200, 'padding': '10px', 'font-family': 'Arial, sans-serif', 'border': '1px solid #ccc', 'border-radius': '5px'}
+        placeholder='Beispiel: Klimaschutz ist mir wichtig. Ich finde, dass erneuerbare Energien stärker gefördert '
+                    'werden sollten und der Ausstieg aus fossilen Brennstoffen beschleunigt werden muss. Gleichzeitig '
+                    'halte ich es für essenziell, die wirtschaftliche Stabilität zu gewährleisten.',
+        style={'width': '95%', 'height': 200, 'padding': '10px', 'font-family': 'Arial, sans-serif',
+               'border': '1px solid #ccc', 'border-radius': '5px'}
     ),
     html.Div([
-        html.Button('Analysiere', id='analyze-button', n_clicks=0,
+        html.Button('Zusammenfassen', id='analyze-button', n_clicks=0,
                     style={'margin': '10px', 'padding': '10px 20px', 'font-family': 'Arial, sans-serif',
                            'background-color': '#880033', 'color': '#fff', 'border': 'none', 'border-radius': '5px',
                            'cursor': 'pointer'})
@@ -108,11 +119,14 @@ def analyze_political_position(n_clicks, political_position):
             for i, (topic, position) in enumerate(zip(topics, positions))
         ]),
         html.Div([
+            html.P("Klicken Sie auf 'Analysiere' um die LLM analyse zu starten. "
+                   "Die Analyse kann einige Zeit in Anspruch nehmen.",
+                   style={'font-family': 'Arial, sans-serif', 'margin-left': '20px', 'margin-right': '20px'}),
             html.Button('Erweitere um eine Thema-Ansicht Box', id='add-topic-position-button', n_clicks=0,
                         style={'margin': '10px', 'padding': '10px 20px', 'font-family': 'Arial, sans-serif',
                                'background-color': '#163c00', 'color': '#fff', 'border': 'none', 'border-radius': '5px',
                                'cursor': 'pointer', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}),
-            html.Button('Ausführen', id='submit-button', n_clicks=0,
+            html.Button('Analysiere', id='submit-button', n_clicks=0,
                         style={'margin': '10px', 'padding': '10px 20px', 'font-family': 'Arial, sans-serif',
                                'background-color': '#880033', 'color': '#fff', 'border': 'none', 'border-radius': '5px',
                                'cursor': 'pointer', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'})

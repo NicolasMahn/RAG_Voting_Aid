@@ -292,12 +292,12 @@ def analyze_score(score, position, context, party, topic_criteria, recursive_dep
                 else:
                     return score
             else:
-                print("Invalid response")
-                print(response)
+                # print("Invalid response")
+                # print(response)
                 return score
         else:
-            print("Invalid response")
-            print(response)
+            # print("Invalid response")
+            # print(response)
             return score
     elif "detailed_answer" not in score or score["detailed_answer"] is None:
         response = basic_gpt.ask_mini_gpt(p_pcs, get_adapted_opinion_for_new_context_instructions())
@@ -322,7 +322,7 @@ def get_criteria_for_position(index, topics, positions):
 
 def process_position(i, party, topics, positions, criteria, max_answer_length):
     result = get_party_context_of_political_position(party, topics[i], positions[i], criteria[i], max_answer_length)
-    print(f"Die {party} ist in dem Thema '{topics[i]}', {result['rating']}% an deiner Meinung.")
+    # print(f"Die {party} ist in dem Thema '{topics[i]}', {result['rating']}% an deiner Meinung.")
     return topics[i], result
 
 def process_party(party, topics, positions, criteria, max_answer_length):
@@ -347,8 +347,8 @@ def process_party(party, topics, positions, criteria, max_answer_length):
                              if party_score[topic]['detailed_answer'] is not None]
             valid_ratings = [r if r != -1 else baseline_score for r in valid_ratings]
             party_score["total"] = sum(valid_ratings) / len(valid_ratings)
-    print(f"Die {party} ist in deiner politischen Position, {party_score['total']}% an deiner Meinung.")
-    print()
+    # print(f"Die {party} ist in deiner politischen Position, {party_score['total']}% an deiner Meinung.")
+    # print()
     return party, party_score
 
 def get_parties_context_of_political_positions(parties, topics, positions, max_answer_length=100):

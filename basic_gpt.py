@@ -30,10 +30,10 @@ def ask_gpt(prompt: str, role :str="You are a helpful assistant.", temperature=0
             }
         ]
     )
-    print(f"{PINK}ROLE:\n{role}{RESET}")
-    print(f"{BLUE}PROMPT:\n{prompt}{RESET}")
-    print(f"{GREEN}RESPONSE:\n{response_text.choices[0].message.content}{RESET}")
-    print(f"---")
+    # print(f"{PINK}ROLE:\n{role}{RESET}")
+    # print(f"{BLUE}PROMPT:\n{prompt}{RESET}")
+    # print(f"{GREEN}RESPONSE:\n{response_text.choices[0].message.content}{RESET}")
+    # print(f"---")
 
     return response_text.choices[0].message.content
 
@@ -52,8 +52,8 @@ def ask_mini_gpt(prompt: str, role :str="You are a helpful assistant.", temperat
             }
         ]
     )
-    print(f"{PINK}ROLE:\n{role}{RESET}")
-    print(f"{BLUE}PROMPT:\n{prompt}{RESET}")
-    print(f"{GREEN}RESPONSE:\n{response_text.choices[0].message.content}{RESET}")
-    print(f"---")
+    # print(f"{PINK}ROLE:\n{role}{RESET}")
+    # print(f"{BLUE}PROMPT:\n{prompt}{RESET}")
+    # print(f"{GREEN}RESPONSE:\n{response_text.choices[0].message.content}{RESET}")
+    # print(f"---")
     return response_text.choices[0].message.content
