@@ -1,5 +1,5 @@
 openai
-langchain~=0.2.0
+langchain~=0.3.30
 langchain_community
 chromadb
 chroma-hnswlib==0.7.3
